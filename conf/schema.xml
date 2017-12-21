@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="example" version="1.6">
+    <fields>
+        <!-- The required Solr version field. -->
+        <field name="_version_" type="version" />
+
+        <!-- The doi is parsed separately. -->
+        <field name="doi" type="pathLike" required="true" />
+
+        <!-- Meta-data search term fields are copied to "text". -->
+        <field name="name" type="text" required="true" />
+        <field name="description" type="text" required="true" />
+        
+        <!-- The catch-all virtual search field. -->
+        <field name="text" type="text" stored="false" multiValued="true"/>
+
+        <!-- Ignore the data points. -->
+        <dynamicField name="dataPoints.*" type="ignored"  multiValued="true"/>
+    </fields>
+
+    <!-- Text fields to search in the catch-all text field. -->
+    <copyField source="name" dest="text" />
+    <copyField source="description" dest="text" />
+
+    <uniqueKey>doi</uniqueKey>
+
+    <types>
+        <!-- The required Solr _version_. -->
+        <fieldType name="version" class="solr.TrieLongField" precisionStep="0"
+                   docValues="true" positionIncrementGap="0"/>
+        <!-- The DOI format is <authority>/<identifier>. -->
+        <fieldType name="pathLike" class="solr.TextField">
+            <analyzer type="index">
+                <!-- The DOI format is <authority>/<identifier>.
+                     We capture only the <identifier> portion. -->
+                <tokenizer class="solr.PatternTokenizerFactory"
+                           pattern="[\d.]+/([A-Za-z0-9]+)"
+                           group="1"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+               <!--  Capture DOI prefixes as tokens, e.g. 'Djz' search
+                      yields the 10.1621/Djz2Krk3 dataset. -->
+                <filter class="solr.EdgeNGramFilterFactory" minGramSize="3"
+                        maxGramSize="15" />
+             </analyzer>
+             <!-- Relax the query search term pattern and forego
+                  n-gram prefix expansion. -->
+            <analyzer type="query">
+                <!-- The DOI search term <authority>/ prefix is optional. -->
+                <tokenizer class="solr.PatternTokenizerFactory"
+                           pattern="(?:[\d.]+/)?([A-Za-z0-9]+)"
+                           group="1"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+             </analyzer>
+        </fieldType>
+        <!-- The go-to English text analyzed field type. There is no
+             positionIncrementGap, so queries can span fields, e.g.
+             searching on 'Djz trans' will match the dataset with
+             DOI '10.1621/Djz2Krk3' (by virtue of the path tokenizer)
+             and a name that includes the a word starting with 'trans'
+             (by virtue of the edge n-gram filter below). -->
+        <fieldType name="text" class="solr.TextField">
+            <analyzer type="index">
+                <!-- Split on whitespace and punctuation,
+                     discarding the delimiters. -->
+                <tokenizer class="solr.StandardTokenizerFactory" />
+                <!-- Convert unicode. -->
+                <filter class="solr.ASCIIFoldingFilterFactory" />
+                <!--  Matches are case-insensitive. -->
+                <filter class="solr.LowerCaseFilterFactory" />
+                <!-- Remove stop words. -->
+                <filter class="solr.StopFilterFactory" words="stopwords.txt" />
+                <!--  Filter out the possessive, e.g. 'Hodgkin's' -> 'Hodgkin'. -->
+                <filter class="solr.EnglishPossessiveFilterFactory" />
+                <!--  Improved, relatively gentle Porter stemmer, a.k.a. Porter2,
+                      e.g. 'stepping' -> 'step'. -->
+                <filter class="solr.SnowballPorterFilterFactory" />
+                <!--  Allow search on intermediate token sequences, e.g.
+                      'siRNA targeting KLF9' will match a search on
+                      'targeting KLF9' or, in conjunction with the
+                      previous stemmer, 'target KLf9'. -->
+                <filter class="solr.ShingleFilterFactory" maxShingleSize="3" />
+                <!--  Capture term prefixes as tokens. -->
+                <filter class="solr.EdgeNGramFilterFactory" minGramSize="3"
+                        maxGramSize="15" />
+            </analyzer>
+            <!--  Query parsing doesn't need shingling and n-grams. -->
+            <analyzer type="query">
+                <tokenizer class="solr.StandardTokenizerFactory" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.StopFilterFactory" words="stopwords.txt" />
+                <filter class="solr.EnglishPossessiveFilterFactory" />
+                <!--  Improved, relatively gentle Porter stemmer, a.k.a. Porter2,
+                      e.g. 'stepping' -> 'step'. -->
+                <filter class="solr.SnowballPorterFilterFactory" />
+            </analyzer>
+        </fieldType>
+        <!-- Ignored fields. -->
+        <fieldType name="ignored" class="solr.StrField" indexed="false" stored="false" />
+    </types>
+</schema>
+
