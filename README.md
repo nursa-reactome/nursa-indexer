@@ -12,7 +12,11 @@ from the Reactome Nursa JSON document cache at
 `/usr/local/reactome/nursa/datasets/10.1621`. Here, `10.1621` is
 the `nursa.org` DOI authority. The directory contents are JSON
 documents for datasets fetched from `nursa.org`. These documents are
-ndexed on the `doi`, `name` and `description` fields.
+indexed on the `doi`, `name` and `description` fields.
+
+The `/usr/local/reactome/nursa/datasets` cache can be refreshed
+with new Nursa dataset content by running this project's
+`populate.sh` program.
 
 Create a new Solr core named `nursa`, if necessary, using the
 [Solr Dashboard](http://localhost:8983/solr) Core Admin. The Reactome
