@@ -14,8 +14,8 @@
         <!-- The catch-all virtual search field. -->
         <field name="text" type="text" stored="false" multiValued="true"/>
 
-        <!-- Ignore the data points. -->
-        <dynamicField name="dataPoints.*" type="ignored"  multiValued="true"/>
+        <!-- Ignore the experiments and data points. -->
+        <dynamicField name="experiments.*" type="ignored"  multiValued="true"/>
     </fields>
 
     <!-- Text fields to search in the catch-all text field. -->
