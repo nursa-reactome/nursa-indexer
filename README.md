@@ -37,7 +37,7 @@ The index can be created manually from an existing
 
 2. Index the datasets using the Solr `post` command:
 
-       /path/to/solr/post -u <userid>:<password> -c nursa -filetypes json \
-                         /usr/local/reactomes/Reactome/production/nursa/datasets/*
+       (cd /usr/local/reactomes/Reactome/production/nursa/datasets/10.1621; \
+        ls */*.json | xargs /path/to/solr/post -u <userid>:<password> -c nursa)
 
    where `/path/to/solr` is the Solr installation directory.
