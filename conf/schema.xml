@@ -9,18 +9,17 @@
 
         <!-- Meta-data search term fields are copied to "text". -->
         <field name="name" type="text" required="true" />
-        <field name="description" type="text" required="true" />
+        <field name="description" type="text" required="false" />
+        <field name="experiments" type="text" required="true" multiValued="true"/>
         
         <!-- The catch-all virtual search field. -->
         <field name="text" type="text" stored="false" multiValued="true"/>
-
-        <!-- Ignore the experiments and data points. -->
-        <dynamicField name="experiments.*" type="ignored"  multiValued="true"/>
     </fields>
 
     <!-- Text fields to search in the catch-all text field. -->
     <copyField source="name" dest="text" />
     <copyField source="description" dest="text" />
+    <copyField source="experiments" dest="text" />
 
     <uniqueKey>doi</uniqueKey>
 
